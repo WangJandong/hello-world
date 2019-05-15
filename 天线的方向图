@@ -1,0 +1,17 @@
+重点在于三维函数的构建
+kL=0.5*pi;
+f1 = 1./(1-cos(kL));
+f2 = (cos(kL*cos(theta))-cos(kL))./sin(theta);
+R= f1*f2;
+
+
+
+t=0:0.05:pi;  %/定义角的范围（0-）
+p=[0:0.05:2*pi,2*pi];   %/定义j角的范围（0-2）
+
+[theta,phi]=meshgrid(t,p);% /把空间分为空间角的单元
+x=R.*sin(theta).*cos(phi);
+y=R.*sin(theta).*sin(phi);
+z=R.*cos(theta);
+figure(1)
+surf(x,y,z);
