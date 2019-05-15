@@ -4,8 +4,6 @@ f1 = 1./(1-cos(kL));
 f2 = (cos(kL*cos(theta))-cos(kL))./sin(theta);
 R= f1*f2;
 
-
-
 t=0:0.05:pi;  %/定义角的范围（0-）
 p=[0:0.05:2*pi,2*pi];   %/定义j角的范围（0-2）
 
