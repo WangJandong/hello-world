@@ -1,0 +1,45 @@
+
+clc;clear all; close all;
+f_mid=3400;
+B_cos=310;                                %这个是截断的余弦信号的带宽
+delta_f=200;
+N_carrier=3;                              %频分复用，共有N_carrier路数据                            
+fs=8*f_mid;                               %信号采样率 
+ts=1/fs;
+T=2/B_cos;                                  %这个是截断的余弦信号的带宽
+N_perchip=fix((T/ts+1)/2)*2 ;               %N_perchip是采样点数
+T=(N_perchip-1)*ts;                         %最后调整一下信号周期，
+N_fft=N_perchip*100;                        %由傅里叶分析的采样率决定
+t=(-T/2:ts:T/2);
+T_signal=zeros(1,length(t) );
+%==============对信号进行归一化===================%
+dscource_norm=cos(2*pi*f_mid*t);
+signal_energy=(norm(dscource_norm)^2)*ts;
+am=sqrt(1/signal_energy);
+N=50000;      % bit 数目
+for i=1:N_carrier
+Qpsk_I(i,:)=am*cos(2*pi*(f_mid+delta_f*(i-1))*t);      %产生载波
+Qpsk_Q(i,:)=am*sin(2*pi*(f_mid+delta_f*(i-1))*t);      %产生载波
+T_signal=T_signal+Qpsk_I(i,:)+Qpsk_Q(i,:);
+end
+fre=linspace(0,fs/2,ceil(N_fft/2)+1);                   %N为偶数
+
+Y=fft(T_signal,N_fft)/sqrt(N_fft);
+figure;
+plot(fre,abs(Y(1:N_fft/2+1)),'k');                      %N为偶数
+%(fre,abs(Y(1:N_perchip/2+1)),'k');                 %N为偶数
+xlabel('频率（Hz）');
+ylabel('幅值');
+title('只有正频率刻度');
+set(gcf,'color','w');
+figure(2);
+hold on
+for i=1:N_carrier
+Qpsk_I(i,:)=am*cos(2*pi*(f_mid+delta_f*(i-1))*t);      %产生载波
+Qpsk_Q(i,:)=am*sin(2*pi*(f_mid+delta_f*(i-1))*t);      %产生载波
+T_signal=Qpsk_I(i,:)+Qpsk_Q(i,:);
+zzz(i,:)=fft(T_signal,N_fft)/sqrt(N_fft);
+end
+plot(fre,abs(zzz(1,1:N_fft/2+1)),'g'); %N为偶数
+plot(fre,abs(zzz(2,1:N_fft/2+1))); %N为偶数
+plot(fre,abs(zzz(3,1:N_fft/2+1)),'r'); %N为偶数
