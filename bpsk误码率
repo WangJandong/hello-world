@@ -1,0 +1,75 @@
+clc;clear all; close all;
+bpsk_num=4;
+f_mid=3400;
+B_cos=310;
+delta_f=400;
+fs=5*f_mid;
+ts=1/fs;
+T=2/B_cos;                                  %这个是截断的余弦信号的带宽
+N_perchip=fix((T/ts+1)/2)*2 ;               %N_perchip是采样点数
+T=(N_perchip-1)*ts;                         %最后调整一下信号周期，
+t=(-T/2:ts:T/2);
+
+%==============对信号进行归一化===================%
+dscource_norm=cos(2*pi*f_mid*t);
+signal_energy=(norm(dscource_norm)^2)*ts;
+am=sqrt(1/signal_energy);
+N=100000;      % bit 数目
+for i=1:bpsk_num
+    bpsk(i,:)=am*cos(2*pi*(f_mid+delta_f*(i-1))*t);      %产生载波
+end
+bpsk(1,:)=am*cos(2*pi*(f_mid)*t);      %产生载波
+bpsk(2,:)=am*sin(2*pi*(f_mid)*t);       %产生载波
+signal_energy=(norm(bpsk(1,:))^2)*ts;
+h=0;                                                                       %后面创建一个数组来纪录不同db下无码个数的标志
+%==============对信号进行归一化===================%
+for db=0:1:10
+    h=h+1;                                                        % 存储每个db时误码的数量标志
+    snr_in_dB=db;
+    snr=10^(snr_in_dB/10);
+    sgma1=sqrt(signal_energy*fs/snr/2);
+    
+    for i=1:(bpsk_num)
+        err_N(i)=0;
+    end
+    %================BPSK调制============================%
+    for signal_bit=1:N
+        for i=1:bpsk_num
+            temp=rand;
+            if temp<0.5
+                signal_temp(i)=-1;
+            else
+                signal_temp(i)=1;
+            end
+            user_wave(i,:)=signal_temp(i)*bpsk(i,:);
+        end
+        %================BPSK调制=============================
+        %============ 产生噪声============================================
+        noise=sgma1*randn(1,length(t));
+        u=noise;            %此处加干扰
+        for i=1:bpsk_num
+            u=u+user_wave(i,:);
+        end
+        %============产生噪声===============================================
+        
+        %==============================解调====================================
+        for i=1:bpsk_num
+            y=u.*bpsk(i,:);                          %BPSK解调
+            decision_via=sum(y);              %积分判决
+            if (decision_via<0)
+                decision=-1;
+            else
+                decision=1;
+            end
+            if(decision~=signal_temp(i))
+                err_N(i)=err_N(i)+1;
+            end
+        end
+    end
+    err_percent(h,:)=err_N/N;
+    mean_bpsk(h) = mean(err_percent(h,:));
+end
+
+EbN0dB=0:1:10;N0=10.^(-EbN0dB/10);Pb=0.5*erfc(sqrt(1./N0));
+semilogy([0:10],Pb,'-g^');hold on;
+semilogy([0:10],mean_bpsk,'-r^');
