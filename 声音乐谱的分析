@@ -1,0 +1,39 @@
+[data,Fs]=audioread('D:/Users/hasee/Desktop/music.aac');
+M=length(data);
+x=data(:,1);
+x1=data(:,1);
+x2=data(:,2);
+v=random('norm',0,0.11,M,1);
+y=x+v;%加噪
+T=1/Fs;  %采样周期
+t=(1:length(data))*T;   %采样时间
+
+figure(1);%时域
+subplot(2,1,1);     % subplot(x,y,n)x表示显示的行数，y表示列数，n表示第几幅图片
+plot(x);
+title('原始信号时域图形');
+xlabel('时间t/s');
+ylabel('音量');
+subplot(2,1,2);  
+plot(y,'r');
+title('原始信号时域图形');
+xlabel('时间t/s');
+ylabel('音量');
+
+figure(2);%频域
+subplot(2,1,1); 
+dataFFT=abs(fft(y));
+plot(dataFFT);
+title('原始信号+N(0,0.1)频域图形');
+subplot(2,1,2); 
+dataFFT2=abs(fft(x));
+plot(dataFFT2);
+title('原始信号频域图形');
+sound(y,Fs);
+
+figure(3);%滤波
+mu=0.05;espon=1e-4;
+% [en,wn,yn]=lmsFunc(mu,M,ref_noise,mixed);%
+[en,wn,yn]=nlmsFunc(mu,M,v,y,espon);  %yn=计算输出值 wn=权重更新 en=误差估计
+%plot(wn);
+plot(yn);
