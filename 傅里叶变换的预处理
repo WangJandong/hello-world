@@ -1,4 +1,4 @@
-function[t,omg,FT,IFT] = prefourier(Trg,N,OMGrg,K)
+function[t,omg,FT,IFT] = prefourier(Trg,N,OMGrg,K) %omg频域变量，t时域变量
 T=Trg(2)-Trg(1);
 
 t=linspace(Trg(1),Trg(2)-T/N,N);
@@ -25,4 +25,30 @@ plot(t,abs(h));
 figure(2);
 plot(H_abs,'r');
 
+%三角波过低通滤波器
+[t,omg,FT,IFT] = prefourier([-10,10],1000,[-15,15],1000);
+tau=pi;
+e1=(t>-tau&t<tau).*(-abs(t)+3);
+E1=e1*FT;
+omgc1=pi;
+H1_abs=(omg>-omgc1&omg<omgc1);
+H1=H1_abs.*exp(-i*omg);
+h1=H1*IFT;
+figure(1);
+subplot(211)
+plot(t,(e1));
+subplot(212)
+plot(omg,(E1),'r');
 
+
+figure(2);
+subplot(311)
+plot(t,(h1));
+subplot(312)
+plot(omg,abs(H1),'r');
+R=E1.*H1;
+r=R*IFT;
+subplot(313)
+plot(t,r);
+%本实验验证了相位变化为信号带来的影响
+线性的相位变化只会带来时域的移动 而 非线性会使信号变得一团糟
